@@ -7,9 +7,9 @@ export function createGetter(path) {
   const props = path.split('.');
   return (product) => {
     let answer = product;
-    for (let i = 0; i < props.length; i++) {
-      if (answer.hasOwnProperty(props[i])) {
-        answer = answer[props[i]];
+    for (const prop of props) {
+      if (answer.hasOwnProperty(prop)) {
+        answer = answer[prop];
       } else {
         return;
       }
