@@ -17,7 +17,7 @@ export default class ColumnChart {
     this.#data = this.#getPrepareData(data);
     this.#label = label;
     this.chartHeight = 50;
-    this.#value = value.toLocaleString('en-EN');
+    this.#value = value;
     this.#formatHeading = formatHeading;
     this.#link = link;
 
@@ -29,7 +29,7 @@ export default class ColumnChart {
       <div class="column-chart">
         <div class="column-chart__title">
           Total ${this.#label}
-          ${this.#link && `<a class="column-chart__link" href=${this.#link}>View all</a>`}
+          ${this.#getLinkTemplate()}
         </div>
         <div class="column-chart__container">
           <div data-element="header" class="column-chart__header">
@@ -41,6 +41,13 @@ export default class ColumnChart {
         </div>
       </div>
     `;
+  }
+
+  #getLinkTemplate() {
+    if (this.#link) {
+      return `<a class="column-chart__link" href=${this.#link}>View all</a>`;
+    }
+    return '';
   }
 
   #getPrepareData(data) {
@@ -86,7 +93,9 @@ export default class ColumnChart {
   }
 
   remove() {
-    this.element.remove();
+    if (this.element) {
+      this.element.remove();
+    }
   }
 
   destroy() {
