@@ -1,9 +1,10 @@
 export default class NotificationMessage {
   #type;
   #message;
+  #timer;
   duration;
-  element = null;
-  static #activeElement = null;
+  element;
+  static #activeNotification;
 
   constructor(message = '', settings = {
     type: 'success',
@@ -15,13 +16,14 @@ export default class NotificationMessage {
     this.#render();
   }
 
-  show(targetElement) {
-    this.destroy();
-    NotificationMessage.#activeElement = this.element;
-    const body = document.querySelector('body');
-    const target = targetElement ?? body;
-    target.append(this.element);
-    setTimeout(() => {
+  show(targetElement = document.body) {
+    if (NotificationMessage.#activeNotification) {
+      NotificationMessage.#activeNotification.remove();
+      NotificationMessage.#activeNotification = null;
+    }
+    NotificationMessage.#activeNotification = this;
+    targetElement.append(this.element);
+    this.#timer = setTimeout(() => {
       this.destroy();
     }, this.duration);
   }
@@ -46,14 +48,10 @@ export default class NotificationMessage {
   }
 
   remove() {
-    if (NotificationMessage.#activeElement) {
-      NotificationMessage.#activeElement.remove();
-      NotificationMessage.#activeElement = null;
-
-    }
     if (this.element) {
       this.element.remove();
     }
+    clearTimeout(this.#timer);
   }
 
   destroy() {
