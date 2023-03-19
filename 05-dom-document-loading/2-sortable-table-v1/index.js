@@ -26,7 +26,7 @@ export default class SortableTable {
   }
 
   sort(field = '', order = 'asc') {
-    if (!field) {
+    if (!field || field === this.#field && order === this.#order) {
       return;
     }
     this.#field = field;
