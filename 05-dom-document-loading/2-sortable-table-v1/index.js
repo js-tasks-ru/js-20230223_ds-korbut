@@ -21,6 +21,8 @@ export default class SortableTable {
         return a.localeCompare(b, ['ru', 'en'], {caseFirst: 'upper'}) * sortDirection;
       case 'number':
         return (a - b) * sortDirection;
+      default:
+        throw new Error(`Unknown sortType ${sortType}`);
       }
     });
   }
@@ -113,10 +115,12 @@ export default class SortableTable {
     if (this.element) {
       this.element.remove();
     }
+    this.element = null;
   }
 
   destroy() {
     this.#remove();
+    this.subElements = {};
   }
 }
 
