@@ -1,26 +1,22 @@
 export default class SortableTable {
-  headersConfig;
+  headerConfig;
   isSortLocally;
   field = '';
   order = '';
   element = null;
   subElements = {};
 
-  constructor(headersConfig, {
+  constructor(headerConfig, {
     data = [],
-    sorted = {
-      isSortLocally: false,
-    }
-
+    sorted = {}
   } = {}) {
-    this.headersConfig = headersConfig;
+    this.headerConfig = headerConfig;
     this.data = data;
-    this.isSortLocally = Boolean(sorted.isSortLocally);
-    if (sorted.id) {
-      this.field = sorted.id;
-      this.order = sorted.order ?? 'asc';
-    }
+    this.isSortLocally = sorted.isSortLocally ?? true;
+    this.field = sorted.id ?? headerConfig.find(item => item.sortable).id;
+    this.order = sorted.order ?? "desc";
     this.render();
+    this.initEventListeners();
   }
 
   getTableHeader() {
@@ -30,7 +26,7 @@ export default class SortableTable {
   }
 
   getTableHeaderRow() {
-    return this.headersConfig.map(header => {
+    return this.headerConfig.map(header => {
       const isSorted = header.id === this.field;
       const dataOrder = isSorted ? this.order : '';
       return `<div class="sortable-table__cell" data-id=${header.id} data-sortable=${header.sortable} data-order=${dataOrder}>
@@ -43,7 +39,7 @@ export default class SortableTable {
   }
 
   getTableRow(data) {
-    return this.headersConfig.map(header => {
+    return this.headerConfig.map(header => {
       if (header.template) {
         return header.template(data);
       }
@@ -78,7 +74,7 @@ export default class SortableTable {
 
   getSortedData(field, order) {
     const data = [...this.data];
-    const { sortType } = this.headersConfig.find(el => el.id === field);
+    const { sortType } = this.headerConfig.find(el => el.id === field);
     const sortIndex = order === 'asc' ? 1 : -1;
 
     return data.sort((a, b) => {
@@ -86,7 +82,7 @@ export default class SortableTable {
       case 'string':
         return a[field].localeCompare(b[field], ['ru', 'en'], {caseFirst: 'upper'}) * sortIndex;
       case 'number':
-        return (a[field] - b[this.field]) * sortIndex;
+        return (a[field] - b[field]) * sortIndex;
       }
     });
   }
@@ -95,8 +91,8 @@ export default class SortableTable {
     let sortedData;
     if (this.isSortLocally) {
       sortedData = this.getSortedData(field, order);
+      this.subElements.body.innerHTML = this.getTableBodyRows(sortedData);
     }
-    this.subElements.body.innerHTML = this.getTableBodyRows(sortedData);
   }
 
   getSubElements() {
@@ -109,6 +105,32 @@ export default class SortableTable {
     }
 
     return subElements;
+  }
+
+  initEventListeners() {
+    this.subElements.header.addEventListener('pointerdown', (evt) => {
+      const headerElement = evt.target.closest('.sortable-table__cell');
+      const elementId = headerElement.dataset.id;
+      const isSortable = headerElement.dataset.sortable === 'true';
+      const headers = this.subElements.header.querySelectorAll('.sortable-table__cell');
+
+      for (const header of headers) {
+        header.dataset.order = '';
+      }
+
+      if (!isSortable) {
+        return;
+      }
+
+      if (elementId === this.field) {
+        this.order = this.order === 'desc' ? 'asc' : 'desc';
+      } else {
+        this.field = elementId;
+        this.order = 'desc';
+      }
+      headerElement.dataset.order = this.order;
+      this.sort(this.field, this.order);
+    });
   }
 
   render() {
