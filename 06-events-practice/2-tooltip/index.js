@@ -11,29 +11,32 @@ class Tooltip {
     Tooltip.#instance = this;
   }
 
-  showTooltip = (evt) => {
+  onPointerOver = (evt) => {
     const closestTooltip = evt.target.closest('[data-tooltip]');
-    this.#tooltip = closestTooltip.dataset.tooltip;
-    if (!this.element) {
-      this.render(this.#tooltip);
+    if (closestTooltip) {
+      const tooltip = closestTooltip.dataset.tooltip;
+      this.render(tooltip);
       this.element.style.left = evt.clientX + 'px';
       this.element.style.top = evt.clientY + 'px';
+      document.addEventListener('pointermove', this.onPointerMove);
     }
-
-    document.addEventListener('pointermove', this.moveTooltip);
-    document.addEventListener('pointerout', this.removeTooltip);
   }
 
-  removeTooltip = () => {
+  onPointerOut = () => {
     this.destroy();
-    document.removeEventListener('pointerover', this.removeTooltip);
-    document.removeEventListener('pointermove', this.moveTooltip);
-    document.removeEventListener('pointerout', this.removeTooltip);
+    document.removeEventListener('pointermove', this.onPointerMove);
+  };
+
+  moveTooltip(evt) {
+    const shift = 10;
+    const left = evt.clientX + shift;
+    const top = evt.clientY + shift;
+    this.element.style.left = `${left}px`;
+    this.element.style.top = `${top}px`;
   }
 
-  moveTooltip = (evt) => {
-    this.element.style.left = evt.clientX + 'px';
-    this.element.style.top = evt.clientY + 'px';
+  onPointerMove = (evt) => {
+    this.moveTooltip(evt);
   }
 
   initialize () {
@@ -47,9 +50,8 @@ class Tooltip {
   }
 
   initEventListeners() {
-    this.#subElements.tooltips.forEach(tooltip => {
-      tooltip.addEventListener('pointerover', this.showTooltip);
-    });
+    document.addEventListener('pointerover', this.onPointerOver);
+    document.addEventListener('pointerout', this.onPointerOut);
   }
 
 
@@ -75,6 +77,10 @@ class Tooltip {
 
   destroy() {
     this.remove();
+    document.removeEventListener('pointerover', this.onPointerOver);
+    document.removeEventListener('pointermove', this.onPointerMove);
+    document.removeEventListener('pointerout', this.onPointerOut);
+
   }
 }
 
